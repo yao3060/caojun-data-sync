@@ -68,8 +68,8 @@ function getHuaRunOpenAPISign($requestData, $timeStamp): string
         $_ENV['HUARUN_OPEN_API_SYS_ID'],
         $timeStamp
     );
-
-    return md5($signData);
+    error_log("HuaRun OpenAPI Sign String:" . $signData . PHP_EOL, 3, __DIR__ . '/logs/app.log');
+    return strtoupper(md5($signData));
 }
 
 function getHuaRunPaymentType(string $type)
@@ -105,24 +105,33 @@ function getHuaRunOrderType($type)
 function sendOrder2HuaRun($order, \GuzzleHttp\Client $client)
 {
     $requestData = [
-        "cashierId" => $order->cashierId, // 收银员编号
+        "cashierId" =>  $order->cashierId, // 收银员编号
         "checkCode" => "88888888", // 店铺验证密钥(密码) 由IMPOS提供
-        "mall" => "20032", // 商场编号
-        "paymentMethod" => getHuaRunPaymentType($order->payType), // 现金是CH；支付宝是AP；微信是WP；银行卡是CI；其它是OT等等
-        "time" => str_replace([" ", "-", ":"], "", $order->mealTm), // yyyyMMddhhmmss（此接口仅支持接收48天内的订单）
-        "itemCode" => "L0401N010001",
-        "orderId" => $order->orderNo, // 订单号
-        "refOrderId" => "", // 若是退货订单可以填写原订单号的内容
+        "itemList" => [],
+        "mall" => $_ENV['HUARUN_OPEN_API_MALL'], // 商场编号
+        "orderId" =>  $order->orderNo, // 订单号
+        "payList" => [
+            [
+                "discountAmt" => 0,
+                "payAmt" =>  $order->payAmt,
+                "paymentMethod" =>  getHuaRunPaymentType($order->payType),
+                // yyyyMMddhhmmss（此接口仅支持接收48天内的订单）
+                "time" =>  str_replace([" ", "-", ":"], "", $order->mealTm),
+                "value" => $order->payAmt
+            ]
+        ],
+        "source" => $_ENV['HUARUN_OPEN_API_POS_ID'],
         "store" => $order->shopId, // 店铺编号
-        "tillId" => "01", // 收银机编号由IMPOS提供
+        "tillId" => $_ENV['HUARUN_OPEN_API_POS_ID'], // 收银机编号由IMPOS提供
+        "time" =>  date('YmdHis'),
         "totalAmt" => $order->payAmt, //订单总金额: "正数：销售订单, 负数：退货订单"
         "type" => getHuaRunOrderType($order->orderType), // 订单类型, 销售：SALE, 退款：ONLINEREFUND
-        "mobile" => $order->contactMobile,
     ];
     $timeStamp = (new DateTime())->format('Y-m-d H:i:s:v');
     $requestJson = [
         "REQUEST_DATA" => $requestData,
         "HRT_ATTRS" => [
+            "App_ID" => $_ENV['HUARUN_OPEN_API_APP_ID'],
             "Partner_ID" => $_ENV['HUARUN_OPEN_API_PARTNER_ID'],
             "Api_Version" => $_ENV['HUARUN_OPEN_API_VERSION'],
             "App_Sub_ID" => $_ENV['HUARUN_OPEN_API_APP_SUB_ID'],
@@ -132,7 +141,7 @@ function sendOrder2HuaRun($order, \GuzzleHttp\Client $client)
             "App_Token" => $_ENV['HUARUN_OPEN_API_APP_TOKEN'],
             "App_Pub_ID" => $_ENV['HUARUN_OPEN_API_APP_PUB_ID'],
             "Sign_Method" => $_ENV['HUARUN_OPEN_API_SIGN_METHOD'],
-            "Sign" => strtoupper(getHuaRunOpenAPISign($requestData, $timeStamp)),
+            "Sign" => getHuaRunOpenAPISign($requestData, $timeStamp),
             "Sys_ID" => $_ENV['HUARUN_OPEN_API_SYS_ID']
         ]
     ];
