@@ -1,0 +1,22 @@
+{
+    "name": "yaoyingying/fuyou",
+    "autoload": {
+        "psr-4": {
+            "Yaoyingying\\Fuyou\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Yao.Yingying",
+            "email": "you3060@163.com"
+        }
+    ],
+    "require-dev": {
+        "symfony/var-dumper": "^5.3"
+    },
+    "require": {
+        "guzzlehttp/guzzle": "^7.4",
+        "vlucas/phpdotenv": "^5.4",
+        "nesbot/carbon": "^2.54"
+    }
+}

@@ -1,0 +1,14 @@
+.DS_Store
+.idea
+.project
+.vscode
+tmp
+Thumbs.db
+vendor
+
+*.swp
+*.swo
+
+.env
+.env.bak
+src/logs/*
