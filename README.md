@@ -4,6 +4,7 @@
 
 -   linux server （Ubuntu LST）
 -   PHP8+
+-   composer2+
 
 ## 安装
 
